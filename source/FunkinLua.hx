@@ -29,6 +29,7 @@ import openfl.utils.Assets;
 import flixel.math.FlxMath;
 import flixel.util.FlxSave;
 import flixel.addons.transition.FlxTransitionableState;
+import haxe.DynamicAccess;
 #if sys
 import sys.FileSystem;
 import sys.io.File;
@@ -232,7 +233,8 @@ class FunkinLua {
 			PlayState.instance.callOnLuas(funcName, args, ignoreStops, exclusions);
 		});
 
-		Lua_helper.add_callback(lua, "callScript", function(?luaFile:String, ?funcName:String, ?args:Array<Dynamic>){
+		// Your code's broken ShadowMario
+		/*Lua_helper.add_callback(lua, "callScript", function(?luaFile:String, ?funcName:String, ?args:Array<Dynamic>){
 			if(luaFile==null){
 				#if (linc_luajit >= "0.0.6")
 				LuaL.error(lua, "bad argument #1 to 'callScript' (string expected, got nil)");
@@ -355,6 +357,7 @@ class FunkinLua {
 			}
 			Lua.pushnil(lua);
 		});
+		
 		Lua_helper.add_callback(lua, "setGlobalFromScript", function(luaFile:String, global:String, val:Dynamic){ // returns the global from a script
 			var cervix = luaFile + ".lua";
 			if(luaFile.endsWith(".lua"))cervix=luaFile;
@@ -477,7 +480,7 @@ class FunkinLua {
 				}
 			}
 			Lua.pushnil(lua);
-		});
+		});*/
 		Lua_helper.add_callback(lua, "isRunning", function(luaFile:String){
 			var cervix = luaFile + ".lua";
 			if(luaFile.endsWith(".lua"))cervix=luaFile;
@@ -790,7 +793,142 @@ class FunkinLua {
 			luaTrace("Object " + obj + " doesn't exist!", false, false, FlxColor.RED);
 		});
 
-		// gay ass tweens
+		// New Note Stuff
+
+		/*
+			noteData
+			0-3 = Opponent Note
+			4-7 = Must Press / Player Note
+		*/
+
+		// You can make accurate ports of Indie Cross, your welcome - Unfair
+
+		Lua_helper.add_callback(lua, "addNoteToUnspawn", function (strumTime:Float = 0, noteData:Int = 0, noteType:String = null, susLength:Float = 0, isGfNote:Bool = false) {
+			// strumTime is in milliseconds. SustainLength is in steps
+			var babyNote:Note = new Note(strumTime, noteData);
+			babyNote.luaCreated = true;
+			babyNote.strumTime = strumTime;
+			babyNote.noteData = noteData % 4;
+			babyNote.mustPress = noteData % 8 > 3;
+			if(susLength > 0) {
+				babyNote.isSustainNote = true;
+				babyNote.sustainLength = susLength;
+			}
+			babyNote.gfNote = isGfNote;
+
+			babyNote.set_noteType(noteType);
+
+			PlayState.instance.unspawnNotes.push(babyNote);
+
+			PlayState.instance.unspawnNeedSort = true;
+
+			return PlayState.instance.unspawnNotes.length - 1;
+		});
+
+		// Kills a note in the unspawnNote queue. Doesn't remove the note completely.
+		Lua_helper.add_callback(lua, "removeUnspawnNote", function (index:Int) {
+			var deadNote:Note = PlayState.instance.unspawnNotes[index];
+			if(deadNote != null) {
+				deadNote.alive = false;
+				PlayState.instance.unspawnNeedSort = true;
+				return true;
+			} else {
+				luaTrace("Unspawn Note " + index + " doesn't exist!");
+				return false;
+			}
+		});
+
+		Lua_helper.add_callback(lua, "removeNote", function (index:Int) {
+			var deadNote:Note = PlayState.instance.notes.members[index];
+			if(deadNote != null) {
+				deadNote.alive = false;
+				return true;
+			} else {
+				luaTrace("Spawned Note " + index + " doesn't exist!");
+				return false;
+			}
+		});
+
+		// The Swag Tweens
+		// This took so long to figure out it's stupid
+		Lua_helper.add_callback(lua, "doTween", function(tag:String, vars:String, value:Dynamic, duration:Float, ease:String) {
+			var pain:Array<String> = vars.replace(' ', '').split('.');
+			var penisHelper:String = pain[pain.length - 1];
+			var penisExam:Dynamic;
+			cancelTween(tag);
+			if(pain.length > 1) {
+				penisExam = getPropertyLoopThingWhatever(pain, true, true);
+			} else {
+				penisExam = getInstance();
+			}
+			
+			if(Reflect.getProperty(penisExam,  penisHelper) != null) {
+				var penisTool:DynamicAccess<Dynamic> = {};
+				penisTool.set(penisHelper, value);
+				PlayState.instance.modchartTweens.set(tag, FlxTween.tween(penisExam, penisTool, duration, {ease: getFlxEaseByString(ease),
+					onComplete: function(twn:FlxTween) {
+						PlayState.instance.callOnLuas('onTweenCompleted', [tag]);
+						PlayState.instance.modchartTweens.remove(tag);
+					}
+				}));
+			} else {
+				luaTrace('Couldnt find object: ' + vars);
+			}
+		});
+
+		/*Lua_helper.add_callback(lua, "doClassTween", function(tag:String, glass:String, vars:String, value:Dynamic, duration:Float, ease:String) {
+			var actuallyKillMe:Array<String> = glass.replace(' ', '').split('.');
+
+			var pain:Array<String> = vars.replace(' ', '').split('.');
+			var penisHelper:String = pain[pain.length - 1];
+			var penisExam:Dynamic;
+			if(pain.length > 1) {
+				penisExam = tweenShit(tag, vars, 1);
+			} else {
+				penisExam = getInstance();
+			}
+			if(Reflect.getProperty(penisExam,  penisHelper) != null) {
+				var penisTool:DynamicAccess<Dynamic> = {};
+				penisTool.set(penisHelper, value);
+				PlayState.instance.modchartTweens.set(tag, FlxTween.tween(penisExam, penisTool, duration, {ease: getFlxEaseByString(ease),
+					onComplete: function(twn:FlxTween) {
+						PlayState.instance.callOnLuas('onTweenCompleted', [tag]);
+						PlayState.instance.modchartTweens.remove(tag);
+					}
+				}));
+			} else {
+				luaTrace('Couldnt find object: ' + vars);
+			}
+		});
+
+		Lua_helper.add_callback(lua, "doGroupTween", function(tag:String, obj:String, index:Int, vars:String, value:Dynamic, duration:Float, ease:String) {
+			var killMe:Array<String> = obj.replace(' ', '').split('.');
+			var actuallyKillMe:Dynamic = getPropertyLoopThingWhatever(killMe);
+
+			var youWish:Array<String> = vars.replace(' ', '').split('.');
+			var penisHelper:String = youWish[youWish.length - 1];
+			var penisExam:Dynamic;
+			if(youWish.length > 1) {
+				penisExam = getGroupStuff(actuallyKillMe, vars, 1);
+			} else {
+				penisExam = actuallyKillMe;
+			}
+				
+			if(Reflect.getProperty(penisExam,  penisHelper) != null) {
+				var penisTool:DynamicAccess<Dynamic> = {};
+				penisTool.set(penisHelper, value);
+				PlayState.instance.modchartTweens.set(tag, FlxTween.tween(penisExam, penisTool, duration, {ease: getFlxEaseByString(ease),
+					onComplete: function(twn:FlxTween) {
+						PlayState.instance.callOnLuas('onTweenCompleted', [tag]);
+						PlayState.instance.modchartTweens.remove(tag);
+					}
+				}));
+			} else {
+				luaTrace('Couldnt find object: ' + vars);
+			}
+		});*/
+
+		// gay ass decrepated tweens
 		Lua_helper.add_callback(lua, "doTweenX", function(tag:String, vars:String, value:Dynamic, duration:Float, ease:String) {
 			var penisExam:Dynamic = tweenShit(tag, vars);
 			if(penisExam != null) {
@@ -1154,6 +1292,24 @@ class FunkinLua {
 			return true;
 		});
 
+		Lua_helper.add_callback(lua, "SetSongTime", function (time:Float = 0, clearNotes:Bool = true) {
+				if(time < Conductor.songPosition)
+				{
+					PlayState.instance.persistentUpdate = false;
+					PlayState.startOnTime = time;
+					PauseSubState.restartSong(true);
+				}
+				else
+				{
+					if (time != Conductor.songPosition)
+					{
+						if(clearNotes) {
+							PlayState.instance.clearNotesBefore(time);
+						}
+						PlayState.instance.setSongTime(time);
+					}
+				}
+		});
 		Lua_helper.add_callback(lua, "startCountdown", function() {
 			PlayState.instance.startCountdown();
 			return true;
@@ -2295,11 +2451,11 @@ class FunkinLua {
 		return PlayState.instance.modchartTexts.exists(name) ? PlayState.instance.modchartTexts.get(name) : Reflect.getProperty(PlayState.instance, name);
 	}
 
-	function getGroupStuff(leArray:Dynamic, variable:String) {
+	function getGroupStuff(leArray:Dynamic, variable:String, off:Int = 0) {
 		var killMe:Array<String> = variable.split('.');
 		if(killMe.length > 1) {
 			var coverMeInPiss:Dynamic = Reflect.getProperty(leArray, killMe[0]);
-			for (i in 1...killMe.length-1) {
+			for (i in 1...killMe.length-1-off) {
 				coverMeInPiss = Reflect.getProperty(coverMeInPiss, killMe[i]);
 			}
 			switch(Type.typeof(coverMeInPiss)){
@@ -2384,12 +2540,12 @@ class FunkinLua {
 		}
 	}
 
-	function tweenShit(tag:String, vars:String) {
+	function tweenShit(tag:String, vars:String, off:Int = 0) {
 		cancelTween(tag);
 		var variables:Array<String> = vars.split('.');
 		var sexyProp:Dynamic = getObjectDirectly(variables[0]);
 		if(variables.length > 1) {
-			sexyProp = getVarInArray(getPropertyLoopThingWhatever(variables), variables[variables.length-1]);
+			sexyProp = getVarInArray(getPropertyLoopThingWhatever(variables, false, false, off), variables[variables.length-1]);
 		}
 		return sexyProp;
 	}
@@ -2567,11 +2723,11 @@ class FunkinLua {
 		return Function_Continue;
 	}
 
-	public static function getPropertyLoopThingWhatever(killMe:Array<String>, ?checkForTextsToo:Bool = true, ?getProperty:Bool=true):Dynamic
+	public static function getPropertyLoopThingWhatever(killMe:Array<String>, ?checkForTextsToo:Bool = true, ?getProperty:Bool = true, off:Int = 0):Dynamic
 	{
 		var coverMeInPiss:Dynamic = getObjectDirectly(killMe[0], checkForTextsToo);
 		var end = killMe.length;
-		if(getProperty)end=killMe.length-1;
+		if(getProperty)end=killMe.length-1-off;
 
 		for (i in 1...end) {
 			coverMeInPiss = getVarInArray(coverMeInPiss, killMe[i]);
@@ -2648,7 +2804,9 @@ class FunkinLua {
 	}
 	static inline var CLENSE:String = "
 	os.execute = nil;
+	io.popen = nil;
 	os.exit = nil;
+	package.loaded.io.popen = nil;
 	package.loaded.os.execute = nil;
 	package.loaded.os.exit = nil;
 	process = nil;

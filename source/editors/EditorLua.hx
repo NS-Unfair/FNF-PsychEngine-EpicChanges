@@ -180,6 +180,54 @@ class EditorLua {
 			}
 		});
 
+		// Note Stuff but editor
+
+		Lua_helper.add_callback(lua, "addNoteToUnspawn", function (strumTime:Float = 0, noteData:Int = 0, noteType:String = null, susLength:Float = 0, isGfNote:Bool = false) {
+			// strumTime is in milliseconds. SustainLength is in steps
+			var babyNote:Note = new Note(strumTime, noteData);
+			babyNote.luaCreated = true;
+			babyNote.strumTime = strumTime;
+			babyNote.noteData = noteData % 4;
+			babyNote.mustPress = noteData % 8 > 3;
+			if(susLength > 0) {
+				babyNote.isSustainNote = true;
+				babyNote.sustainLength = susLength;
+			}
+			babyNote.gfNote = isGfNote;
+
+			babyNote.set_noteType(noteType);
+
+			EditorPlayState.instance.unspawnNotes.push(babyNote);
+
+			EditorPlayState.instance.unspawnNeedSort = true;
+
+			return EditorPlayState.instance.unspawnNotes.length - 1;
+		});
+
+		// Kills a note in the unspawnNote queue. Doesn't remove the note completely.
+		Lua_helper.add_callback(lua, "removeUnspawnNote", function (index:Int) {
+			var deadNote:Note = EditorPlayState.instance.unspawnNotes[index];
+			if(deadNote != null) {
+				deadNote.alive = false;
+				// Reason why I do this is so Lua scripts don't break
+				// The notes indexs would change if I just removed the note
+				EditorPlayState.instance.unspawnNeedSort = true;
+				return true;
+			} else {
+				return false;
+			}
+		});
+
+		Lua_helper.add_callback(lua, "removeNote", function (index:Int) {
+			var deadNote:Note = EditorPlayState.instance.notes.members[index];
+			if(deadNote != null) {
+				deadNote.alive = false;
+				return true;
+			} else {
+				return false;
+			}
+		});
+
 		Discord.DiscordClient.addLuaCallbacks(lua);
 
 		call('onCreate', []);

@@ -34,6 +34,7 @@ class EditorPlayState extends MusicBeatState
 
 	public var notes:FlxTypedGroup<Note>;
 	public var unspawnNotes:Array<Note> = [];
+	public var unspawnNeedSort:Bool = false;
 
 	var generatedMusic:Bool = false;
 	var vocals:FlxSound;
@@ -310,6 +311,10 @@ class EditorPlayState extends MusicBeatState
 		return FlxSort.byValues(FlxSort.ASCENDING, Obj1.strumTime, Obj2.strumTime);
 	}
 
+	function filterOutDead(Obj:Note) {
+		return Obj.alive;
+	}
+
 	private function endSong() {
 		LoadingState.loadAndSwitchState(new editors.ChartingState());
 	}
@@ -330,6 +335,12 @@ class EditorPlayState extends MusicBeatState
 			}
 		} else {
 			Conductor.songPosition += elapsed * 1000;
+		}
+
+		if (unspawnNeedSort == true) {
+			unspawnNeedSort = false;
+			unspawnNotes.filter(filterOutDead);
+			unspawnNotes.sort(sortByShit);
 		}
 
 		var roundedSpeed:Float = FlxMath.roundDecimal(PlayState.SONG.speed, 2);

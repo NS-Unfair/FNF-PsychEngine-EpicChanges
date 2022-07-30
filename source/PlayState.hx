@@ -139,6 +139,7 @@ class PlayState extends MusicBeatState
 
 	public var notes:FlxTypedGroup<Note>;
 	public var unspawnNotes:Array<Note> = [];
+	public var unspawnNeedSort:Bool = false;
 	public var eventNotes:Array<EventNote> = [];
 
 	private var strumLine:FlxSprite;
@@ -2526,6 +2527,10 @@ class PlayState extends MusicBeatState
 		return 0;
 	}
 
+	function filterOutDead(Obj:Note) {
+		return Obj.alive;
+	}
+
 	function sortByShit(Obj1:Note, Obj2:Note):Int
 	{
 		return FlxSort.byValues(FlxSort.ASCENDING, Obj1.strumTime, Obj2.strumTime);
@@ -3020,6 +3025,12 @@ class PlayState extends MusicBeatState
 			trace("RESET = True");
 		}
 		doDeathCheck();
+
+		if (unspawnNeedSort == true) {
+			unspawnNeedSort = false;
+			unspawnNotes.filter(filterOutDead);
+			unspawnNotes.sort(sortByShit);
+		}
 
 		if (unspawnNotes[0] != null)
 		{
@@ -3626,6 +3637,9 @@ class PlayState extends MusicBeatState
 				} else {
 					FunkinLua.setVarInArray(this, value1, value2);
 				}
+
+			case 'Set Camera Target':
+				
 		}
 		callOnLuas('onEvent', [eventName, value1, value2]);
 	}

@@ -64,6 +64,7 @@ class Note extends FlxSprite
 	public static var RED_NOTE:Int = 3;
 
 	// Lua shit
+	public var luaCreated:Bool = false;
 	public var noteSplashDisabled:Bool = false;
 	public var noteSplashTexture:String = null;
 	public var noteSplashHue:Float = 0;
@@ -120,7 +121,7 @@ class Note extends FlxSprite
 		return value;
 	}
 
-	private function set_noteType(value:String):String {
+	public function set_noteType(value:String):String {
 		noteSplashTexture = PlayState.SONG.splashSkin;
 		colorSwap.hue = ClientPrefs.arrowHSV[noteData % 4][0] / 360;
 		colorSwap.saturation = ClientPrefs.arrowHSV[noteData % 4][1] / 100;

@@ -1196,8 +1196,9 @@ class FunkinLua {
 			}
 		});*/
 
-		// gay ass decrepated tweens
+		// These tweens are deprecated. Not going to move then in the backward compatablility section.
 		Lua_helper.add_callback(lua, "doTweenX", function(tag:String, vars:String, value:Dynamic, duration:Float, ease:String) {
+			luaTrace("doTweenX is deprecated! Use doTween instead", false, true);
 			var penisExam:Dynamic = tweenShit(tag, vars);
 			if(penisExam != null) {
 				PlayState.instance.modchartTweens.set(tag, FlxTween.tween(penisExam, {x: value}, duration, {ease: getFlxEaseByString(ease),
@@ -1211,6 +1212,7 @@ class FunkinLua {
 			}
 		});
 		Lua_helper.add_callback(lua, "doTweenY", function(tag:String, vars:String, value:Dynamic, duration:Float, ease:String) {
+			luaTrace("doTweenY is deprecated! Use doTween instead", false, true);
 			var penisExam:Dynamic = tweenShit(tag, vars);
 			if(penisExam != null) {
 				PlayState.instance.modchartTweens.set(tag, FlxTween.tween(penisExam, {y: value}, duration, {ease: getFlxEaseByString(ease),
@@ -1224,6 +1226,7 @@ class FunkinLua {
 			}
 		});
 		Lua_helper.add_callback(lua, "doTweenAngle", function(tag:String, vars:String, value:Dynamic, duration:Float, ease:String) {
+			luaTrace("doTweenAngle is deprecated! Use doTween instead", false, true);
 			var penisExam:Dynamic = tweenShit(tag, vars);
 			if(penisExam != null) {
 				PlayState.instance.modchartTweens.set(tag, FlxTween.tween(penisExam, {angle: value}, duration, {ease: getFlxEaseByString(ease),
@@ -1237,6 +1240,7 @@ class FunkinLua {
 			}
 		});
 		Lua_helper.add_callback(lua, "doTweenAlpha", function(tag:String, vars:String, value:Dynamic, duration:Float, ease:String) {
+			luaTrace("doTweenAlpha is deprecated! Use doTween instead", false, true);
 			var penisExam:Dynamic = tweenShit(tag, vars);
 			if(penisExam != null) {
 				PlayState.instance.modchartTweens.set(tag, FlxTween.tween(penisExam, {alpha: value}, duration, {ease: getFlxEaseByString(ease),
@@ -1250,6 +1254,7 @@ class FunkinLua {
 			}
 		});
 		Lua_helper.add_callback(lua, "doTweenZoom", function(tag:String, vars:String, value:Dynamic, duration:Float, ease:String) {
+			luaTrace("doTweenZoom is deprecated! Use doTween instead", false, true);
 			var penisExam:Dynamic = tweenShit(tag, vars);
 			if(penisExam != null) {
 				PlayState.instance.modchartTweens.set(tag, FlxTween.tween(penisExam, {zoom: value}, duration, {ease: getFlxEaseByString(ease),
